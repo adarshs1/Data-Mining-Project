@@ -1,0 +1,2205 @@
+---
+title: "aij"
+author: "Adarsh Srinivas, Isha Kaur, Jay Sheth"
+date: "May 18, 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+
+```{r}
+setwd ("/Users/Adiii/Documents/Spring 2016/INST 737/Project/") 
+
+#Feature Engineering
+SeasonD<-read.csv("RegularSeasonDetailedResults.csv")
+attach(SeasonD)
+SeasonD$Team1<-ifelse(Wteam<Lteam,Wteam,Lteam)
+SeasonD$Team2<-ifelse(Wteam>Lteam,Wteam,Lteam)
+SeasonD$Result<-ifelse(Team1==Wteam,1,0)
+SeasonD$T1score<-ifelse(Team1==Wteam,Wscore,Lscore)
+SeasonD$T2score<-ifelse(Team2==Wteam,Wscore,Lscore)
+SeasonD$T1fgm<-ifelse(Result==1,Wfgm,Lfgm)
+SeasonD$T2fgm<-ifelse(Result==0,Wfgm,Lfgm)
+SeasonD$T1fga<-ifelse(Result==1,Wfga,Lfga)
+SeasonD$T2fga<-ifelse(Result==0,Wfga,Lfga)
+SeasonD$T1fgm3<-ifelse(Result==1,Wfgm3,Lfgm3)
+SeasonD$T2fgm3<-ifelse(Result==0,Wfgm3,Lfgm3)
+SeasonD$T1fga3<-ifelse(Result==1,Wfga3,Lfga3)
+SeasonD$T2fga3<-ifelse(Result==0,Wfga3,Lfga3)
+SeasonD$T1ftm<-ifelse(Result==1,Wftm,Lftm)
+SeasonD$T2ftm<-ifelse(Result==0,Wftm,Lftm)
+SeasonD$T1fta<-ifelse(Result==1,Wfta,Lfta)
+SeasonD$T2fta<-ifelse(Result==0,Wfta,Lfta)
+SeasonD$T1or<-ifelse(Result==1,Wor,Lor)
+SeasonD$T2or<-ifelse(Result==0,Wor,Lor)
+SeasonD$T1dr<-ifelse(Result==1,Wdr,Ldr)
+SeasonD$T2dr<-ifelse(Result==0,Wdr,Ldr)
+SeasonD$T1ast<-ifelse(Result==1,Wast,Last)
+SeasonD$T2ast<-ifelse(Result==0,Wast,Last)
+SeasonD$T1to<-ifelse(Result==1,Wto,Lto)
+SeasonD$T2to<-ifelse(Result==0,Wto,Lto)
+SeasonD$T1stl<-ifelse(Result==1,Wstl,Lstl)
+SeasonD$T2stl<-ifelse(Result==0,Wstl,Lstl)
+SeasonD$T1blk<-ifelse(Result==1,Wblk,Lblk)
+SeasonD$T2blk<-ifelse(Result==0,Wblk,Lblk)
+SeasonD$T1pf<-ifelse(Result==1,Wpf,Lpf)
+SeasonD$T2pf<-ifelse(Result==0,Wpf,Lpf)
+
+attach(SeasonD)
+#T1Efficiency
+SeasonD$T1Eff<-(T1score+T1or+T1dr+T1ast+T1stl+T1blk-T2to-(T1fga-T1fgm)-(T1fta-T1ftm))
+
+#T2Efficiency
+SeasonD$T2Eff<-(T2score+T2or+T2dr+T2ast+T2stl+T2blk-T1to-(T2fga-T2fgm)-(T2fta-T2ftm))
+
+#T1Possesions
+SeasonD$T1poss<-0.96*(T1fga-T1or-T1to+(0.475*T1fta))
+
+SeasonD$T2poss<-0.96*(T2fga-T2or-T2to+(0.475*T2fta))
+
+attach(SeasonD)
+#Offensive Efficiency
+SeasonD$T1OE<-T1score*100/T1poss
+SeasonD$T2OE<-T2score*100/T2poss
+
+#Deffensive Efficiency
+SeasonD$T1DE<-T2score*100/T1poss
+SeasonD$T2DE<-T1score*100/T2poss
+
+#Effective field goal %
+SeasonD$T1efg<-(T1fgm+(0.5*T1fgm3))/T1fga
+SeasonD$T2efg<-(T2fgm+(0.5*T2fgm3))/T2fga
+
+#Turn Over %
+SeasonD$T1top<-T1to/T1poss
+SeasonD$T2top<-T2to/T2poss
+ 
+#Offensive Rebound %
+SeasonD$T1torp<-T1or/(T1or+T2dr)
+SeasonD$T2torp<-T2or/(T2or+T1dr)
+
+#Free Throw Rate
+SeasonD$T1ftr<-T1fta/T1fga
+SeasonD$T2ftr<-T2fta/T2fga
+
+# Removing 2016 match details from regular season details to give equal weightage
+SeasonD_past<-SeasonD[0:65872,]
+SeasonD_2016<-SeasonD[65873:71241,]
+write.csv(SeasonD_2016, file = "SeasonD_2016.csv",row.names=FALSE)
+write.csv(SeasonD_past, file = "SeasonD_past.csv",row.names=FALSE)
+
+
+
+
+
+
+attach(SeasonD_past)
+aggregate(T1score~Team1, SeasonD_past, mean)
+aggregate(T1score,T2score~Team1, SeasonD_past, mean)
+aggregate(T1score + T2score~Team1, SeasonD_past, mean)
+aggregate(cbind(T1score, T2score) ~Team1,SeasonD_past, mean)
+aggregate(cbind(T1score, T2score) ~Team1+Team2, SeasonD_past, mean)
+aggregate(cbind(T1score, T2score) ~Team1, SeasonD_past, mean)
+aggregate(cbind(T1score, T1Eff,T1poss,T1OE,T1DE,T1efg,T1top,T1torp,T1ftr) ~Team1, SeasonD_past, mean)
+Test<-aggregate(cbind(T1score, T1Eff,T1poss,T1OE,T1DE,T1efg,T1top,T1torp,T1ftr) ~Team1, SeasonD_past, mean)
+Test2<-aggregate(cbind(T2score, T2Eff,T2poss,T2OE,T2DE,T2efg,T2top,T2torp,T2ftr) ~Team2, SeasonD_past, mean)
+newrow<-data.frame(Team2=1101,T2score=0,T2Eff=0,T2poss=0,T2OE=0,T2DE=0,T2efg=0,T2top=0,T2torp=0,T2ftr=0)
+Test2<-rbind(Test2,newrow)
+newrow1<-data.frame(Team2=1102,T2score=0,T2Eff=0,T2poss=0,T2OE=0,T2DE=0,T2efg=0,T2top=0,T2torp=0,T2ftr=0)
+Test2<-rbind(Test2,newrow1)
+newrow2<-data.frame(Team2=1103,T2score=0,T2Eff=0,T2poss=0,T2OE=0,T2DE=0,T2efg=0,T2top=0,T2torp=0,T2ftr=0)
+Test2<-rbind(Test2,newrow2)
+Test_final<-cbind(Test,Test2)
+
+
+Test_2016<-aggregate(cbind(T1score, T1Eff,T1poss,T1OE,T1DE,T1efg,T1top,T1torp,T1ftr) ~Team1,SeasonD_2016, mean)
+View(Test_2016)
+Test2<-aggregate(cbind(T2score, T2Eff,T2poss,T2OE,T2DE,T2efg,T2top,T2torp,T2ftr) ~Team2,SeasonD_2016, mean)
+
+Test_Tournament<-aggregate(cbind(T1score, T1Eff,T1poss,T1OE,T1DE,T1efg,T1top,T1torp,T1ftr) ~Team1, TourneyD, mean)
+Test2_Tournament<-aggregate(cbind(T2score, T2Eff,T2poss,T2OE,T2DE,T2efg,T2top,T2torp,T2ftr) ~Team2, TourneyD, mean)
+
+SampleSubmission<-read.csv("SampleSubmission.csv")
+library(reshape2)
+Samplefinal<-cbind(SampleSubmission$Id, colsplit(SampleSubmission$Id, "_", names = c('Season', 'Team1', 'Team2')))
+
+#File includind weighted averages
+
+SeasonD_mod<-read.csv("SeasonD_mod.csv")
+mydata<-merge(Samplefinal,SeasonD_mod,by=c("Team1"))
+names(mydata)<-gsub("T","T1",names(mydata),fixed = TRUE)
+
+
+mydata2<-merge(Samplefinal,SeasonD_mod,by=c("Team2"))
+names(mydata2)<-gsub("T","T2",names(mydata2),fixed = TRUE)
+mydatafinal<-cbind(mydata,mydata2)
+
+View(mydatafinal)
+write.csv(mydatafinal,file="mydatafinal.csv")
+
+T2<-Samplefinal$Team2
+T2<-as.data.frame(T2)
+T2$Team2<-T2$T2
+T2$T2<-NULL
+
+
+#Data2<-merge(T2,SeasonD_mod,by=c("Team2"))
+#T2$id<-1:nrow(T2)
+#Data2<-merge(T2,SeasonD_mod,by=c("Team2"))
+#Data2[order(Data2$id),]
+#write.csv(Data2,file="data2.csv")
+
+Finaldata<-read.csv("Season.csv")
+Datatour<-merge(Samplefinal,Finaldata,by=c("Team1"))
+T2$id<-1:nrow(T2)
+Datatour2<-merge(T2,Finaldata,by=c("Team2"))
+Datatour2[order(Datatour2$id),]
+
+write.csv(Datatour,file="datatour.csv")
+write.csv(Datatour2,file="datatour2.csv")
+
+FinalDataset<-cbind(Datatour,Datatour2)
+write.csv(FinalDataset,file="FinalDataset.csv")
+
+install.packages("sqldf")
+library(sqldf)
+matchups<-read.csv("Matchups.csv")
+final_test<-read.csv("Final_test_data.csv")
+test_actual<-sqldf("SELECT * FROM final_test,matchups WHERE matchups.Team1=final_test.Team1 AND matchups.Team2=final_test.Team2 ")
+write.csv(test_actual,"Test_actual.csv")
+
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+library(ggplot2)
+ggplot(final_train_data,aes(x=T1score,y=T1Eff,fill=T1score,stat_count(geom="bar")))+stat_summary(fun.y="mean",geom="bar")+facet_grid(Season~.)
+
+# Logistic Regression
+
+# Rattle is Copyright (c) 2006-2015 Togaware Pty Ltd.
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:12:32 x86_64-apple-darwin13.4.0 
+
+# Rattle version 4.1.0 user 'Adiii'
+
+# This log file captures all Rattle interactions as R commands. 
+
+#Export this log to a file using the Export button or the Tools 
+# menu to save a log of all your activity. This facilitates repeatability. For example, exporting 
+# to a file called 'myrf01.R' will allow you to type in the R Console 
+# the command source('myrf01.R') and so repeat all actions automatically. 
+# Generally, you will want to edit the file to suit your needs. You can also directly 
+# edit this current log in place to record additional information before exporting. 
+ 
+# Saving and loading projects also retains this log.
+
+# We begin by loading the required libraries.
+
+library(rattle)   # To access the weather dataset and utility commands.
+library(magrittr) # For the %>% and %<>% operators.
+
+# This log generally records the process of building a model. However, with very 
+# little effort the log can be used to score a new dataset. The logical variable 
+# 'building' is used to toggle between generating transformations, as when building 
+# a model, and simply using the transformations, as when scoring a dataset.
+
+building <- TRUE
+scoring  <- ! building
+
+
+# A pre-defined value is used to reset the random seed so that results are repeatable.
+
+crv$seed <- 42 
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:12:43 x86_64-apple-darwin13.4.0 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///Users/Adiii/Documents/Spring 2016/INST 737/Project/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:12:48 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:13:08 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1score", "T1Eff", "T1poss", "T1OE",
+     "T1DE", "T1efg", "T1top", "T1torp",
+     "T1ftr", "T2score", "T2Eff", "T2poss",
+     "T2OE", "T2DE", "T2efg", "T2top",
+     "T2torp", "T2ftr")
+
+crs$numeric <- c("T1score", "T1Eff", "T1poss", "T1OE",
+     "T1DE", "T1efg", "T1top", "T1torp",
+     "T1ftr", "T2score", "T2Eff", "T2poss",
+     "T2OE", "T2DE", "T2efg", "T2top",
+     "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "Team2", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:13:18 x86_64-apple-darwin13.4.0 
+
+# Neural Network 
+
+# Build a neural network model using the nnet package.
+
+library(nnet, quietly=TRUE)
+
+# Build the NNet model.
+
+set.seed(199)
+crs$nnet <- nnet(as.factor(Result) ~ .,
+    data=crs$dataset[crs$sample,c(crs$input, crs$target)],
+    size=20, skip=TRUE, MaxNWts=10000, trace=FALSE, maxit=100)
+
+# Print the results of the modelling.
+
+cat(sprintf("A %s network with %d weights.\n",
+    paste(crs$nnet$n, collapse="-"),
+    length(crs$nnet$wts)))
+cat(sprintf("Inputs: %s.\n",
+    paste(crs$nnet$coefnames, collapse=", ")))
+cat(sprintf("Output: %s.\n",
+    names(attr(crs$nnet$terms, "dataClasses"))[1]))
+cat(sprintf("Sum of Squares Residuals: %.4f.\n",
+    sum(residuals(crs$nnet) ^ 2)))
+cat("\n")
+print(summary(crs$nnet))
+cat('\n')
+
+# Time taken: 2.64 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:13:35 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Obtain probability scores for the Neural Net model on Test_actual.csv.
+
+crs$pr <- predict(crs$nnet, newdata=crs$testset[,c(crs$input)], type="class")
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:22:31 x86_64-apple-darwin13.4.0 
+
+# Support vector machine. 
+
+# The 'kernlab' package provides the 'ksvm' function.
+
+library(kernlab, quietly=TRUE)
+
+# Build a Support Vector Machine model.
+
+set.seed(crv$seed)
+crs$ksvm <- ksvm(as.factor(Result) ~ .,
+      data=crs$dataset[crs$train,c(crs$input, crs$target)],
+      kernel="rbfdot",
+      prob.model=TRUE)
+
+# Generate a textual view of the SVM model.
+
+crs$ksvm
+
+# Time taken: 45.89 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:23:39 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/Testactual_RbfSvm_data_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:26:42 x86_64-apple-darwin13.4.0 
+
+# Support vector machine. 
+
+# The 'kernlab' package provides the 'ksvm' function.
+
+library(kernlab, quietly=TRUE)
+
+# Build a Support Vector Machine model.
+
+set.seed(crv$seed)
+crs$ksvm <- ksvm(as.factor(Result) ~ .,
+      data=crs$dataset[crs$train,c(crs$input, crs$target)],
+      kernel="laplacedot",
+      prob.model=TRUE)
+
+# Generate a textual view of the SVM model.
+
+crs$ksvm
+
+# Time taken: 1.57 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:28:28 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/lapsvm_testactual_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:33:14 x86_64-apple-darwin13.4.0 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///Users/Adiii/Documents/Spring 2016/INST 737/Project/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:33:18 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:33:44 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1score", "T1Eff", "T1poss", "T1OE",
+     "T1DE", "T1efg", "T1top", "T1torp",
+     "T1ftr", "T2score", "T2Eff", "T2poss",
+     "T2OE", "T2DE", "T2efg", "T2top",
+     "T2torp", "T2ftr")
+
+crs$numeric <- c("T1score", "T1Eff", "T1poss", "T1OE",
+     "T1DE", "T1efg", "T1top", "T1torp",
+     "T1ftr", "T2score", "T2Eff", "T2poss",
+     "T2OE", "T2DE", "T2efg", "T2top",
+     "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "Team2", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:34:50 x86_64-apple-darwin13.4.0 
+
+# Ada Boost 
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:35:18 x86_64-apple-darwin13.4.0 
+
+# Ada Boost 
+
+# The `ada' package implements the boost algorithm.
+
+# Build the Ada Boost model.
+
+set.seed(crv$seed)
+crs$ada <- ada::ada(Result ~ .,
+                    data=crs$dataset[crs$train,c(crs$input, crs$target)],
+                    control=rpart::rpart.control(maxdepth=30,
+                                                 cp=0.010000,
+                                                 minsplit=20,
+                                                 xval=10),
+                    iter=50)
+
+# Print the results of the modelling.
+
+print(crs$ada)
+round(crs$ada$model$errs[crs$ada$iter,], 2)
+cat('Variables actually used in tree construction:\n')
+print(sort(names(listAdaVarsUsed(crs$ada))))
+cat('\nFrequency of variables actually used:\n')
+print(listAdaVarsUsed(crs$ada))
+
+# Time taken: 2.11 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:39:35 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Obtain probability scores for the Ada Boost model on Test_actual.csv.
+
+crs$pr <- predict(crs$ada, newdata=crs$testset[,c(crs$input)])
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual_score_boost.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:47:48 x86_64-apple-darwin13.4.0 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///Users/Adiii/Documents/Spring 2016/INST 737/Project/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:47:52 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:48:14 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$numeric <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "T1score", "Team2", "T2score", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:48:21 x86_64-apple-darwin13.4.0 
+
+# Neural Network 
+
+# Build a neural network model using the nnet package.
+
+library(nnet, quietly=TRUE)
+
+# Build the NNet model.
+
+set.seed(199)
+crs$nnet <- nnet(as.factor(Result) ~ .,
+    data=crs$dataset[crs$sample,c(crs$input, crs$target)],
+    size=20, skip=TRUE, MaxNWts=10000, trace=FALSE, maxit=100)
+
+# Print the results of the modelling.
+
+cat(sprintf("A %s network with %d weights.\n",
+    paste(crs$nnet$n, collapse="-"),
+    length(crs$nnet$wts)))
+cat(sprintf("Inputs: %s.\n",
+    paste(crs$nnet$coefnames, collapse=", ")))
+cat(sprintf("Output: %s.\n",
+    names(attr(crs$nnet$terms, "dataClasses"))[1]))
+cat(sprintf("Sum of Squares Residuals: %.4f.\n",
+    sum(residuals(crs$nnet) ^ 2)))
+cat("\n")
+print(summary(crs$nnet))
+cat('\n')
+
+# Time taken: 6.32 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:48:56 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Obtain probability scores for the Neural Net model on Test_actual.csv.
+
+crs$pr <- predict(crs$nnet, newdata=crs$testset[,c(crs$input)], type="class")
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual_score_nn_no_t1t2score.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:53:03 x86_64-apple-darwin13.4.0 
+
+# Support vector machine. 
+
+# The 'kernlab' package provides the 'ksvm' function.
+
+library(kernlab, quietly=TRUE)
+
+# Build a Support Vector Machine model.
+
+set.seed(crv$seed)
+crs$ksvm <- ksvm(as.factor(Result) ~ .,
+      data=crs$dataset[crs$train,c(crs$input, crs$target)],
+      kernel="laplacedot",
+      prob.model=TRUE)
+
+# Generate a textual view of the SVM model.
+
+crs$ksvm
+
+# Time taken: 3.36 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 14:57:43 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/lapsvm_nott1t2_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:01:56 x86_64-apple-darwin13.4.0 
+
+# Support vector machine. 
+
+# The 'kernlab' package provides the 'ksvm' function.
+
+library(kernlab, quietly=TRUE)
+
+# Build a Support Vector Machine model.
+
+set.seed(crv$seed)
+crs$ksvm <- ksvm(as.factor(Result) ~ .,
+      data=crs$dataset[crs$train,c(crs$input, crs$target)],
+      kernel="rbfdot",
+      prob.model=TRUE)
+
+# Generate a textual view of the SVM model.
+
+crs$ksvm
+
+# Time taken: 2.03 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:04:06 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/rbfsvm_no_t1t2_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:08:05 x86_64-apple-darwin13.4.0 
+
+# Ada Boost 
+
+# The `ada' package implements the boost algorithm.
+
+# Build the Ada Boost model.
+
+set.seed(crv$seed)
+crs$ada <- ada::ada(Result ~ .,
+                    data=crs$dataset[crs$train,c(crs$input, crs$target)],
+                    control=rpart::rpart.control(maxdepth=30,
+                                                 cp=0.010000,
+                                                 minsplit=20,
+                                                 xval=10),
+                    iter=50)
+
+# Print the results of the modelling.
+
+print(crs$ada)
+round(crs$ada$model$errs[crs$ada$iter,], 2)
+cat('Variables actually used in tree construction:\n')
+print(sort(names(listAdaVarsUsed(crs$ada))))
+cat('\nFrequency of variables actually used:\n')
+print(listAdaVarsUsed(crs$ada))
+
+# Time taken: 1.96 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:11:58 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Ada Boost model on Final_train_data.csv.
+
+crs$pr <- predict(crs$ada, newdata=crs$testset[,c(crs$input)])
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_boost_not1t2.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:19:08 x86_64-apple-darwin13.4.0 
+
+# Random Forest 
+
+# The 'randomForest' package provides the 'randomForest' function.
+
+library(randomForest, quietly=TRUE)
+
+# Build the Random Forest model.
+
+set.seed(crv$seed)
+crs$rf <- randomForest::randomForest(as.factor(Result) ~ .,
+      data=crs$dataset[crs$sample,c(crs$input, crs$target)], 
+      ntree=500,
+      mtry=4,
+      importance=TRUE,
+      na.action=randomForest::na.roughfix,
+      replace=FALSE)
+
+# Generate textual output of 'Random Forest' model.
+
+crs$rf
+
+# List the importance of the variables.
+
+rn <- round(randomForest::importance(crs$rf), 2)
+rn[order(rn[,3], decreasing=TRUE),]
+
+# Time taken: 4.34 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:23:43 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Random Forest model on Final_train_data.csv.
+
+crs$pr <- predict(crs$rf, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/forest_nt1t2_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:25:53 x86_64-apple-darwin13.4.0 
+
+# Regression model 
+
+# Build a Regression model.
+
+crs$glm <- glm(Result ~ .,
+    data=crs$dataset[crs$train, c(crs$input, crs$target)],
+    family=binomial(link="logit"))
+
+# Generate a textual view of the Linear model.
+
+print(summary(crs$glm))
+cat(sprintf("Log likelihood: %.3f (%d df)\n",
+            logLik(crs$glm)[1],
+            attr(logLik(crs$glm), "df")))
+cat(sprintf("Null/Residual deviance difference: %.3f (%d df)\n",
+            crs$glm$null.deviance-crs$glm$deviance,
+            crs$glm$df.null-crs$glm$df.residual))
+cat(sprintf("Chi-square p-value: %.8f\n",
+            dchisq(crs$glm$null.deviance-crs$glm$deviance,
+                   crs$glm$df.null-crs$glm$df.residual)))
+cat(sprintf("Pseudo R-Square (optimistic): %.8f\n",
+             cor(crs$glm$y, crs$glm$fitted.values)))
+cat('\n==== ANOVA ====\n\n')
+print(anova(crs$glm, test="Chisq"))
+cat("\n")
+
+# Time taken: 32.69 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:28:40 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Linear model on Final_train_data.csv.
+
+crs$pr <- as.vector(ifelse(predict(crs$glm, type="response", newdata=crs$testset[,c(crs$input)]) > 0.5, "1", "0"))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/glm_nt1t2_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:31:31 x86_64-apple-darwin13.4.0 
+
+# Decision Tree 
+
+# The 'rpart' package provides the 'rpart' function.
+
+library(rpart, quietly=TRUE)
+
+# Reset the random number seed to obtain the same results each time.
+
+set.seed(crv$seed)
+
+# Build the Decision Tree model.
+
+crs$rpart <- rpart(Result ~ .,
+    data=crs$dataset[crs$train, c(crs$input, crs$target)],
+    method="class",
+    parms=list(split="information"),
+    control=rpart.control(usesurrogate=0, 
+        maxsurrogate=0))
+
+# Generate a textual view of the Decision Tree model.
+
+print(crs$rpart)
+printcp(crs$rpart)
+cat("\n")
+
+# Time taken: 3.08 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:31:43 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Decision Tree model on Final_train_data.csv.
+
+crs$pr <- predict(crs$rpart, newdata=crs$testset[,c(crs$input)], type="class")
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/tree_nt1t2_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:36:03 x86_64-apple-darwin13.4.0 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///Users/Adiii/Documents/Spring 2016/INST 737/Project/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:36:08 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:37:03 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1score", "T1Eff", "T1poss", "T1OE",
+     "T1DE", "T1efg", "T1top", "T1torp",
+     "T1ftr", "T2score", "T2Eff", "T2poss",
+     "T2OE", "T2DE", "T2efg", "T2top",
+     "T2torp", "T2ftr")
+
+crs$numeric <- c("T1score", "T1Eff", "T1poss", "T1OE",
+     "T1DE", "T1efg", "T1top", "T1torp",
+     "T1ftr", "T2score", "T2Eff", "T2poss",
+     "T2OE", "T2DE", "T2efg", "T2top",
+     "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "Team2", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:37:18 x86_64-apple-darwin13.4.0 
+
+# Random Forest 
+
+# The 'randomForest' package provides the 'randomForest' function.
+
+library(randomForest, quietly=TRUE)
+
+# Build the Random Forest model.
+
+set.seed(crv$seed)
+crs$rf <- randomForest::randomForest(as.factor(Result) ~ .,
+      data=crs$dataset[crs$sample,c(crs$input, crs$target)], 
+      ntree=500,
+      mtry=4,
+      importance=TRUE,
+      na.action=randomForest::na.roughfix,
+      replace=FALSE)
+
+# Generate textual output of 'Random Forest' model.
+
+crs$rf
+
+# List the importance of the variables.
+
+rn <- round(randomForest::importance(crs$rf), 2)
+rn[order(rn[,3], decreasing=TRUE),]
+
+# Time taken: 3.34 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:40:48 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:41:06 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Obtain probability scores for the Random Forest model on Test_actual.csv.
+
+crs$pr <- predict(crs$rf, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/forest_test_actualscore.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:41:37 x86_64-apple-darwin13.4.0 
+
+# Regression model 
+
+# Build a Regression model.
+
+crs$glm <- glm(Result ~ .,
+    data=crs$dataset[crs$train, c(crs$input, crs$target)],
+    family=binomial(link="logit"))
+
+# Generate a textual view of the Linear model.
+
+print(summary(crs$glm))
+cat(sprintf("Log likelihood: %.3f (%d df)\n",
+            logLik(crs$glm)[1],
+            attr(logLik(crs$glm), "df")))
+cat(sprintf("Null/Residual deviance difference: %.3f (%d df)\n",
+            crs$glm$null.deviance-crs$glm$deviance,
+            crs$glm$df.null-crs$glm$df.residual))
+cat(sprintf("Chi-square p-value: %.8f\n",
+            dchisq(crs$glm$null.deviance-crs$glm$deviance,
+                   crs$glm$df.null-crs$glm$df.residual)))
+cat(sprintf("Pseudo R-Square (optimistic): %.8f\n",
+             cor(crs$glm$y, crs$glm$fitted.values)))
+cat('\n==== ANOVA ====\n\n')
+print(anova(crs$glm, test="Chisq"))
+cat("\n")
+
+# Time taken: 37.19 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:42:40 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Linear model on Final_train_data.csv.
+
+crs$pr <- as.vector(ifelse(predict(crs$glm, type="response", newdata=crs$testset[,c(crs$input)]) > 0.5, "1", "0"))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/glm_testactual_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:43:11 x86_64-apple-darwin13.4.0 
+
+# Decision Tree 
+
+# The 'rpart' package provides the 'rpart' function.
+
+library(rpart, quietly=TRUE)
+
+# Reset the random number seed to obtain the same results each time.
+
+set.seed(crv$seed)
+
+# Build the Decision Tree model.
+
+crs$rpart <- rpart(Result ~ .,
+    data=crs$dataset[crs$train, c(crs$input, crs$target)],
+    method="class",
+    parms=list(split="information"),
+    control=rpart.control(usesurrogate=0, 
+        maxsurrogate=0))
+
+# Generate a textual view of the Decision Tree model.
+
+print(crs$rpart)
+printcp(crs$rpart)
+cat("\n")
+
+# Time taken: 2.70 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 15:43:24 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Decision Tree model on Final_train_data.csv.
+
+crs$pr <- predict(crs$rpart, newdata=crs$testset[,c(crs$input)], type="class")
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Documents/Spring 2016/INST 737/Project/tree_testactual_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-12 16:52:45 x86_64-apple-darwin13.4.0 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///Users/Adiii/Documents/Spring 2016/INST 737/Project/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-12 16:52:50 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 16:53:25 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$numeric <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "T1score", "Team2", "T2score", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-12 16:53:53 x86_64-apple-darwin13.4.0 
+
+# Neural Network 
+
+# Build a neural network model using the nnet package.
+
+library(nnet, quietly=TRUE)
+
+# Build the NNet model.
+
+set.seed(199)
+crs$nnet <- nnet(as.factor(Result) ~ .,
+    data=crs$dataset[crs$sample,c(crs$input, crs$target)],
+    size=20, skip=TRUE, MaxNWts=10000, trace=FALSE, maxit=100)
+
+# Print the results of the modelling.
+
+cat(sprintf("A %s network with %d weights.\n",
+    paste(crs$nnet$n, collapse="-"),
+    length(crs$nnet$wts)))
+cat(sprintf("Inputs: %s.\n",
+    paste(crs$nnet$coefnames, collapse=", ")))
+cat(sprintf("Output: %s.\n",
+    names(attr(crs$nnet$terms, "dataClasses"))[1]))
+cat(sprintf("Sum of Squares Residuals: %.4f.\n",
+    sum(residuals(crs$nnet) ^ 2)))
+cat("\n")
+print(summary(crs$nnet))
+cat('\n')
+
+# Time taken: 5.57 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 16:59:02 x86_64-apple-darwin13.4.0 
+
+# Decision Tree 
+
+# The 'rpart' package provides the 'rpart' function.
+
+library(rpart, quietly=TRUE)
+
+# Reset the random number seed to obtain the same results each time.
+
+set.seed(crv$seed)
+
+# Build the Decision Tree model.
+
+crs$rpart <- rpart(Result ~ .,
+    data=crs$dataset[crs$train, c(crs$input, crs$target)],
+    method="class",
+    parms=list(split="information"),
+    control=rpart.control(usesurrogate=0, 
+        maxsurrogate=0))
+
+# Generate a textual view of the Decision Tree model.
+
+print(crs$rpart)
+printcp(crs$rpart)
+cat("\n")
+
+# Time taken: 2.80 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-12 16:59:25 x86_64-apple-darwin13.4.0 
+
+# Plot the resulting Decision Tree. 
+
+# We use the rpart.plot package.
+
+fancyRpartPlot(crs$rpart, main="Decision Tree Final_train_data.csv $ Result")
+
+#============================================================
+# Rattle timestamp: 2016-05-12 17:01:30 x86_64-apple-darwin13.4.0 
+
+# Random Forest 
+
+# The 'randomForest' package provides the 'randomForest' function.
+
+library(randomForest, quietly=TRUE)
+
+# Build the Random Forest model.
+
+set.seed(crv$seed)
+crs$rf <- randomForest::randomForest(as.factor(Result) ~ .,
+      data=crs$dataset[crs$sample,c(crs$input, crs$target)], 
+      ntree=500,
+      mtry=4,
+      importance=TRUE,
+      na.action=randomForest::na.roughfix,
+      replace=FALSE)
+
+# Generate textual output of 'Random Forest' model.
+
+crs$rf
+
+# List the importance of the variables.
+
+rn <- round(randomForest::importance(crs$rf), 2)
+rn[order(rn[,3], decreasing=TRUE),]
+
+# Time taken: 3.20 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-12 17:06:27 x86_64-apple-darwin13.4.0 
+
+# Neural Network 
+
+# Build a neural network model using the nnet package.
+
+library(nnet, quietly=TRUE)
+
+# Build the NNet model.
+
+set.seed(199)
+crs$nnet <- nnet(as.factor(Result) ~ .,
+    data=crs$dataset[crs$sample,c(crs$input, crs$target)],
+    size=20, skip=TRUE, MaxNWts=10000, trace=FALSE, maxit=100)
+
+# Print the results of the modelling.
+
+cat(sprintf("A %s network with %d weights.\n",
+    paste(crs$nnet$n, collapse="-"),
+    length(crs$nnet$wts)))
+cat(sprintf("Inputs: %s.\n",
+    paste(crs$nnet$coefnames, collapse=", ")))
+cat(sprintf("Output: %s.\n",
+    names(attr(crs$nnet$terms, "dataClasses"))[1]))
+cat(sprintf("Sum of Squares Residuals: %.4f.\n",
+    sum(residuals(crs$nnet) ^ 2)))
+cat("\n")
+print(summary(crs$nnet))
+cat('\n')
+
+# Time taken: 5.78 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:37:53 x86_64-apple-darwin13.4.0 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$numeric <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "T1score", "Team2", "T2score", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:38:06 x86_64-apple-darwin13.4.0 
+
+# Neural Network 
+
+# Build a neural network model using the nnet package.
+
+library(nnet, quietly=TRUE)
+
+# Build the NNet model.
+
+set.seed(199)
+crs$nnet <- nnet(as.factor(Result) ~ .,
+    data=crs$dataset[crs$sample,c(crs$input, crs$target)],
+    size=20, skip=TRUE, MaxNWts=10000, trace=FALSE, maxit=100)
+
+# Print the results of the modelling.
+
+cat(sprintf("A %s network with %d weights.\n",
+    paste(crs$nnet$n, collapse="-"),
+    length(crs$nnet$wts)))
+cat(sprintf("Inputs: %s.\n",
+    paste(crs$nnet$coefnames, collapse=", ")))
+cat(sprintf("Output: %s.\n",
+    names(attr(crs$nnet$terms, "dataClasses"))[1]))
+cat(sprintf("Sum of Squares Residuals: %.4f.\n",
+    sum(residuals(crs$nnet) ^ 2)))
+cat("\n")
+print(summary(crs$nnet))
+cat('\n')
+
+# Time taken: 8.50 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:39:10 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:39:40 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("/Users/Adiii/Documents/Spring 2016/INST 737/Project/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Obtain probability scores for the Neural Net model on Test_actual.csv.
+
+crs$pr <- predict(crs$nnet, newdata=crs$testset[,c(crs$input)], type="class")
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Downloads/Test_actual_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:49:01 x86_64-apple-darwin13.4.0 
+
+# Regression model 
+
+# Build a Regression model.
+
+crs$glm <- glm(Result ~ .,
+    data=crs$dataset[crs$train, c(crs$input, crs$target)],
+    family=binomial(link="logit"))
+
+# Generate a textual view of the Linear model.
+
+print(summary(crs$glm))
+cat(sprintf("Log likelihood: %.3f (%d df)\n",
+            logLik(crs$glm)[1],
+            attr(logLik(crs$glm), "df")))
+cat(sprintf("Null/Residual deviance difference: %.3f (%d df)\n",
+            crs$glm$null.deviance-crs$glm$deviance,
+            crs$glm$df.null-crs$glm$df.residual))
+cat(sprintf("Chi-square p-value: %.8f\n",
+            dchisq(crs$glm$null.deviance-crs$glm$deviance,
+                   crs$glm$df.null-crs$glm$df.residual)))
+cat(sprintf("Pseudo R-Square (optimistic): %.8f\n",
+             cor(crs$glm$y, crs$glm$fitted.values)))
+cat('\n==== ANOVA ====\n\n')
+print(anova(crs$glm, test="Chisq"))
+cat("\n")
+
+# Time taken: 45.84 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:51:19 x86_64-apple-darwin13.4.0 
+
+# Score a dataset. 
+
+# Obtain probability scores for the Linear model on Final_train_data.csv.
+
+crs$pr <- as.vector(ifelse(predict(crs$glm, type="response", newdata=crs$testset[,c(crs$input)]) > 0.5, "1", "0"))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="/Users/Adiii/Downloads/Final_train_data_score_idents.csv", row.names=FALSE)
+
+
+# Rattle is Copyright (c) 2006-2015 Togaware Pty Ltd.
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:32:20 x86_64-w64-mingw32 
+
+# Rattle version 4.1.0 user 'Jay'
+
+# This log file captures all Rattle interactions as R commands. 
+
+#Export this log to a file using the Export button or the Tools 
+# menu to save a log of all your activity. This facilitates repeatability. For example, exporting 
+# to a file called 'myrf01.R' will allow you to type in the R Console 
+# the command source('myrf01.R') and so repeat all actions automatically. 
+# Generally, you will want to edit the file to suit your needs. You can also directly 
+# edit this current log in place to record additional information before exporting. 
+
+# Saving and loading projects also retains this log.
+
+# We begin by loading the required libraries.
+
+library(rattle)   # To access the weather dataset and utility commands.
+library(magrittr) # For the %>% and %<>% operators.
+
+# This log generally records the process of building a model. However, with very 
+# little effort the log can be used to score a new dataset. The logical variable 
+# 'building' is used to toggle between generating transformations, as when building 
+# a model, and simply using the transformations, as when scoring a dataset.
+
+building <- TRUE
+scoring  <- ! building
+
+
+# A pre-defined value is used to reset the random seed so that results are repeatable.
+
+crv$seed <- 42 
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:32:54 x86_64-w64-mingw32 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///C:/Users/Jay/Desktop/737-Digging into Data/project/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:33:00 x86_64-w64-mingw32 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+               "T1OE", "T1DE", "T1efg", "T1top",
+               "T1torp", "T1ftr", "Team2", "T2score",
+               "T2Eff", "T2poss", "T2OE", "T2DE",
+               "T2efg", "T2top", "T2torp", "T2ftr",
+               "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+                 "T1OE", "T1DE", "T1efg", "T1top",
+                 "T1torp", "T1ftr", "Team2", "T2score",
+                 "T2Eff", "T2poss", "T2OE", "T2DE",
+                 "T2efg", "T2top", "T2torp", "T2ftr",
+                 "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:34:15 x86_64-w64-mingw32 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+               "T1OE", "T1DE", "T1efg", "T1top",
+               "T1torp", "T1ftr", "Team2", "T2score",
+               "T2Eff", "T2poss", "T2OE", "T2DE",
+               "T2efg", "T2top", "T2torp", "T2ftr",
+               "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+                 "T1OE", "T1DE", "T1efg", "T1top",
+                 "T1torp", "T1ftr", "Team2", "T2score",
+                 "T2Eff", "T2poss", "T2OE", "T2DE",
+                 "T2efg", "T2top", "T2torp", "T2ftr",
+                 "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:35:24 x86_64-w64-mingw32 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 1*crs$nobs) # 72088 observations
+crs$validate <- NULL
+crs$test <- NULL
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+               "T1efg", "T1top", "T1torp", "T1ftr",
+               "T2Eff", "T2poss", "T2OE", "T2DE",
+               "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$numeric <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+                 "T1efg", "T1top", "T1torp", "T1ftr",
+                 "T2Eff", "T2poss", "T2OE", "T2DE",
+                 "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "T1score", "Team2", "T2score", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:35:40 x86_64-w64-mingw32 
+
+# Support vector machine. 
+
+# The 'kernlab' package provides the 'ksvm' function.
+
+library(kernlab, quietly=TRUE)
+
+# Build a Support Vector Machine model.
+
+set.seed(crv$seed)
+crs$ksvm <- ksvm(as.factor(Result) ~ .,
+                 data=crs$dataset[crs$train,c(crs$input, crs$target)],
+                 kernel="rbfdot",
+                 prob.model=TRUE)
+
+# Generate a textual view of the SVM model.
+
+crs$ksvm
+
+# Time taken: 3.90 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:40:10 x86_64-w64-mingw32 
+
+# Evaluate model performance. 
+
+# Generate an Error Matrix for the SVM model.
+
+# Obtain the response from the SVM model.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$dataset[crs$sample, c(crs$input, crs$target)]))
+
+# Generate the confusion matrix showing counts.
+
+table(na.omit(crs$dataset[crs$sample, c(crs$input, crs$target)])$Result, crs$pr,
+      useNA="ifany",
+      dnn=c("Actual", "Predicted"))
+
+# Generate the confusion matrix showing proportions.
+
+pcme <- function(actual, cl)
+{
+  x <- table(actual, cl)
+  nc <- nrow(x) # Number of classes.
+  nv <- length(actual) - sum(is.na(actual) | is.na(cl)) # Number of values.
+  tbl <- cbind(x/nv,
+               Error=sapply(1:nc,
+                            function(r) round(sum(x[r,-r])/sum(x[r,]), 2)))
+  names(attr(tbl, "dimnames")) <- c("Actual", "Predicted")
+  return(tbl)
+}
+per <- pcme(na.omit(crs$dataset[crs$sample, c(crs$input, crs$target)])$Result, crs$pr)
+round(per, 2)
+
+# Calculate the overall error percentage.
+
+cat(100*round(1-sum(diag(per), na.rm=TRUE), 2))
+
+# Calculate the averaged class error percentage.
+
+cat(100*round(mean(per[,"Error"], na.rm=TRUE), 2))
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:41:02 x86_64-w64-mingw32 
+
+# Evaluate model performance. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("C:/Users/Jay/Desktop/737-Digging into Data/project/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Generate an Error Matrix for the SVM model.
+
+# Obtain the response from the SVM model.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input, crs$target)]))
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:41:34 x86_64-w64-mingw32 
+
+# Score a dataset. 
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="C:\Users\Jay\Desktop\737-Digging into Data\project\Final_train_data_score_idents.csv", row.names=FALSE)
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:41:50 x86_64-w64-mingw32 
+
+# Score a dataset. 
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:43:51 x86_64-w64-mingw32 
+
+# Support vector machine. 
+
+# The 'kernlab' package provides the 'ksvm' function.
+
+library(kernlab, quietly=TRUE)
+
+# Build a Support Vector Machine model.
+
+set.seed(crv$seed)
+crs$ksvm <- ksvm(as.factor(Result) ~ .,
+                 data=crs$dataset[crs$train,c(crs$input, crs$target)],
+                 kernel="laplacedot",
+                 prob.model=TRUE)
+
+# Generate a textual view of the SVM model.
+
+crs$ksvm
+
+# Time taken: 10.22 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:55:56 x86_64-w64-mingw32 
+
+# Evaluate model performance. 
+
+# Generate an Error Matrix for the SVM model.
+
+# Obtain the response from the SVM model.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input, crs$target)]))
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:56:39 x86_64-w64-mingw32 
+
+# Score a dataset. 
+
+# Obtain probability scores for the SVM model on Final_train_data.csv.
+
+crs$pr <- kernlab::predict(crs$ksvm, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="C:\Users\Jay\Desktop\737-Digging into Data\project\Final_train_data_score_.csv", row.names=FALSE)
+
+
+
+# Rattle is Copyright (c) 2006-2015 Togaware Pty Ltd.
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:26:23 x86_64-w64-mingw32 
+
+# Rattle version 4.1.0 user 'IshaPC'
+
+# This log file captures all Rattle interactions as R commands. 
+
+#Export this log to a file using the Export button or the Tools 
+# menu to save a log of all your activity. This facilitates repeatability. For example, exporting 
+# to a file called 'myrf01.R' will allow you to type in the R Console 
+# the command source('myrf01.R') and so repeat all actions automatically. 
+# Generally, you will want to edit the file to suit your needs. You can also directly 
+# edit this current log in place to record additional information before exporting. 
+ 
+# Saving and loading projects also retains this log.
+
+# We begin by loading the required libraries.
+
+library(rattle)   # To access the weather dataset and utility commands.
+library(magrittr) # For the %>% and %<>% operators.
+
+# This log generally records the process of building a model. However, with very 
+# little effort the log can be used to score a new dataset. The logical variable 
+# 'building' is used to toggle between generating transformations, as when building 
+# a model, and simply using the transformations, as when scoring a dataset.
+
+building <- TRUE
+scoring  <- ! building
+
+
+# A pre-defined value is used to reset the random seed so that results are repeatable.
+
+crv$seed <- 42 
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:32:33 x86_64-w64-mingw32 
+
+# Load the data.
+
+crs$dataset <- read.csv("file:///C:/Users/IshaPC/Downloads/737Project/2016-march-machine-learning-mania-predictions/2016-march-machine-learning-mania-predictions/Final_train_data.csv", na.strings=c(".", "NA", "", "?"), strip.white=TRUE, encoding="UTF-8")
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:32:39 x86_64-w64-mingw32 
+
+# Note the user selections. 
+
+# Build the training/validate/test datasets.
+
+set.seed(crv$seed) 
+crs$nobs <- nrow(crs$dataset) # 72088 observations 
+crs$sample <- crs$train <- sample(nrow(crs$dataset), 0.7*crs$nobs) # 50461 observations
+crs$validate <- sample(setdiff(seq_len(nrow(crs$dataset)), crs$train), 0.15*crs$nobs) # 10813 observations
+crs$test <- setdiff(setdiff(seq_len(nrow(crs$dataset)), crs$train), crs$validate) # 10814 observations
+
+# The following variable selections have been noted.
+
+crs$input <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$numeric <- c("Team1", "T1score", "T1Eff", "T1poss",
+     "T1OE", "T1DE", "T1efg", "T1top",
+     "T1torp", "T1ftr", "Team2", "T2score",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr",
+     "Season")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- NULL
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:35:07 x86_64-w64-mingw32 
+
+# Note the user selections. 
+
+# The following variable selections have been noted.
+
+crs$input <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$numeric <- c("T1Eff", "T1poss", "T1OE", "T1DE",
+     "T1efg", "T1top", "T1torp", "T1ftr",
+     "T2Eff", "T2poss", "T2OE", "T2DE",
+     "T2efg", "T2top", "T2torp", "T2ftr")
+
+crs$categoric <- NULL
+
+crs$target  <- "Result"
+crs$risk    <- NULL
+crs$ident   <- NULL
+crs$ignore  <- c("Team1", "T1score", "Team2", "T2score", "Season")
+crs$weights <- NULL
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:35:11 x86_64-w64-mingw32 
+
+# Decision Tree 
+
+# The 'rpart' package provides the 'rpart' function.
+
+library(rpart, quietly=TRUE)
+
+# Reset the random number seed to obtain the same results each time.
+
+set.seed(crv$seed)
+
+# Build the Decision Tree model.
+
+crs$rpart <- rpart(Result ~ .,
+    data=crs$dataset[, c(crs$input, crs$target)],
+    method="class",
+    parms=list(split="information"),
+    control=rpart.control(usesurrogate=0, 
+        maxsurrogate=0))
+
+# Generate a textual view of the Decision Tree model.
+
+print(crs$rpart)
+printcp(crs$rpart)
+cat("\n")
+
+# Time taken: 4.46 secs
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:35:59 x86_64-w64-mingw32 
+
+# Ada Boost 
+
+# The `ada' package implements the boost algorithm.
+
+# Build the Ada Boost model.
+
+set.seed(crv$seed)
+crs$ada <- ada::ada(Result ~ .,
+                    data=crs$dataset[,c(crs$input, crs$target)],
+                    control=rpart::rpart.control(maxdepth=30,
+                                                 cp=0.010000,
+                                                 minsplit=20,
+                                                 xval=10),
+                    iter=50)
+
+# Print the results of the modelling.
+
+print(crs$ada)
+round(crs$ada$model$errs[crs$ada$iter,], 2)
+cat('Variables actually used in tree construction:\n')
+print(sort(names(listAdaVarsUsed(crs$ada))))
+cat('\nFrequency of variables actually used:\n')
+print(listAdaVarsUsed(crs$ada))
+
+# Time taken: 2.12 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-17 22:56:29 x86_64-w64-mingw32 
+
+# Random Forest 
+
+# The 'randomForest' package provides the 'randomForest' function.
+
+library(randomForest, quietly=TRUE)
+
+# Build the Random Forest model.
+
+set.seed(crv$seed)
+crs$rf <- randomForest::randomForest(as.factor(Result) ~ .,
+      data=crs$dataset[,c(crs$input, crs$target)], 
+      ntree=500,
+      mtry=4,
+      importance=TRUE,
+      na.action=randomForest::na.roughfix,
+      replace=FALSE)
+
+# Generate textual output of 'Random Forest' model.
+
+crs$rf
+
+# The `pROC' package implements various AUC functions.
+
+# Calculate the Area Under the Curve (AUC).
+
+pROC::roc(crs$rf$y, as.numeric(crs$rf$predicted))
+
+# Calculate the AUC Confidence Interval.
+
+pROC::ci.auc(crs$rf$y, as.numeric(crs$rf$predicted))
+
+# List the importance of the variables.
+
+rn <- round(randomForest::importance(crs$rf), 2)
+rn[order(rn[,3], decreasing=TRUE),]
+
+# Time taken: 3.49 mins
+
+#============================================================
+# Rattle timestamp: 2016-05-17 23:00:41 x86_64-w64-mingw32 
+
+# Evaluate model performance. 
+
+# Generate an Error Matrix for the Decision Tree model.
+
+# Obtain the response from the Decision Tree model.
+
+crs$pr <- predict(crs$rpart, newdata=crs$dataset[,c(crs$input, crs$target)], type="class")
+
+# Generate the confusion matrix showing counts.
+
+table(crs$dataset[,c(crs$input, crs$target)]$Result, crs$pr,
+        useNA="ifany",
+        dnn=c("Actual", "Predicted"))
+
+# Generate the confusion matrix showing proportions.
+
+pcme <- function(actual, cl)
+{
+  x <- table(actual, cl)
+  nc <- nrow(x) # Number of classes.
+  nv <- length(actual) - sum(is.na(actual) | is.na(cl)) # Number of values.
+  tbl <- cbind(x/nv,
+               Error=sapply(1:nc,
+                 function(r) round(sum(x[r,-r])/sum(x[r,]), 2)))
+  names(attr(tbl, "dimnames")) <- c("Actual", "Predicted")
+  return(tbl)
+}
+per <- pcme(crs$dataset[,c(crs$input, crs$target)]$Result, crs$pr)
+round(per, 2)
+
+# Calculate the overall error percentage.
+
+cat(100*round(1-sum(diag(per), na.rm=TRUE), 2))
+
+# Calculate the averaged class error percentage.
+
+cat(100*round(mean(per[,"Error"], na.rm=TRUE), 2))
+
+# Generate an Error Matrix for the Ada Boost model.
+
+# Obtain the response from the Ada Boost model.
+
+crs$pr <- predict(crs$ada, newdata=crs$dataset[,c(crs$input, crs$target)])
+
+# Generate the confusion matrix showing counts.
+
+table(crs$dataset[,c(crs$input, crs$target)]$Result, crs$pr,
+        useNA="ifany",
+        dnn=c("Actual", "Predicted"))
+
+# Generate the confusion matrix showing proportions.
+
+pcme <- function(actual, cl)
+{
+  x <- table(actual, cl)
+  nc <- nrow(x) # Number of classes.
+  nv <- length(actual) - sum(is.na(actual) | is.na(cl)) # Number of values.
+  tbl <- cbind(x/nv,
+               Error=sapply(1:nc,
+                 function(r) round(sum(x[r,-r])/sum(x[r,]), 2)))
+  names(attr(tbl, "dimnames")) <- c("Actual", "Predicted")
+  return(tbl)
+}
+per <- pcme(crs$dataset[,c(crs$input, crs$target)]$Result, crs$pr)
+round(per, 2)
+
+# Calculate the overall error percentage.
+
+cat(100*round(1-sum(diag(per), na.rm=TRUE), 2))
+
+# Calculate the averaged class error percentage.
+
+cat(100*round(mean(per[,"Error"], na.rm=TRUE), 2))
+
+# Generate an Error Matrix for the Random Forest model.
+
+# Obtain the response from the Random Forest model.
+
+crs$pr <- predict(crs$rf, newdata=na.omit(crs$dataset[,c(crs$input, crs$target)]))
+
+# Generate the confusion matrix showing counts.
+
+table(na.omit(crs$dataset[,c(crs$input, crs$target)])$Result, crs$pr,
+        useNA="ifany",
+        dnn=c("Actual", "Predicted"))
+
+# Generate the confusion matrix showing proportions.
+
+pcme <- function(actual, cl)
+{
+  x <- table(actual, cl)
+  nc <- nrow(x) # Number of classes.
+  nv <- length(actual) - sum(is.na(actual) | is.na(cl)) # Number of values.
+  tbl <- cbind(x/nv,
+               Error=sapply(1:nc,
+                 function(r) round(sum(x[r,-r])/sum(x[r,]), 2)))
+  names(attr(tbl, "dimnames")) <- c("Actual", "Predicted")
+  return(tbl)
+}
+per <- pcme(na.omit(crs$dataset[,c(crs$input, crs$target)])$Result, crs$pr)
+round(per, 2)
+
+# Calculate the overall error percentage.
+
+cat(100*round(1-sum(diag(per), na.rm=TRUE), 2))
+
+# Calculate the averaged class error percentage.
+
+cat(100*round(mean(per[,"Error"], na.rm=TRUE), 2))
+
+#============================================================
+# Rattle timestamp: 2016-05-17 23:02:44 x86_64-w64-mingw32 
+
+# Score a dataset. 
+
+# Read a dataset from file for testing the model.
+
+crs$testset <- read.csv("C:/Users/IshaPC/Downloads/737Project/2016-march-machine-learning-mania-predictions/2016-march-machine-learning-mania-predictions/Test_actual.csv", na.strings=c(".", "NA", "", "?"), header=TRUE, sep=",", encoding="UTF-8", strip.white=TRUE)
+
+# Obtain probability scores for the Decision Tree model on Test_actual.csv.
+
+crs$pr <- predict(crs$rpart, newdata=crs$testset[,c(crs$input)], type="class")
+
+# Obtain probability scores for the Ada Boost model on Test_actual.csv.
+
+crs$pr <- predict(crs$ada, newdata=crs$testset[,c(crs$input)])
+
+# Obtain probability scores for the Random Forest model on Test_actual.csv.
+
+crs$pr <- predict(crs$rf, newdata=na.omit(crs$testset[,c(crs$input)]))
+
+# Extract the relevant variables from the dataset.
+
+sdata <- subset(crs$testset[,], select=c())
+
+# Output the combined data.
+
+write.csv(cbind(sdata, crs$pr), file="C:\Users\IshaPC\Downloads\737Project\2016-march-machine-learning-mania-predictions\2016-march-machine-learning-mania-predictions\Test_actual_score_identsfinal.csv", row.names=FALSE)
+
+```{r}
+
